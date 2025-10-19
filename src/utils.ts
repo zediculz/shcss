@@ -40,7 +40,9 @@ const alpha = [
   "z"
 ];
 
-const shCommands = (command: string) => {
+//responsive
+/**@function tCommands all TerseCSS css shorthand commands and its utility function */
+const tCommands = (command: string) => {
   switch (command) {
     case "bg":
       return "background";
@@ -90,7 +92,9 @@ const shCommands = (command: string) => {
   }
 };
 
-const shMedia = (media: string) => {
+//responsive
+/**@function tMedia responsive media query */
+const tMedia = (media: string) => {
   switch (media) {
     case "sm":
       return "@media screen and (max-width:425px)";
@@ -104,7 +108,8 @@ const shMedia = (media: string) => {
   }
 };
 
-const shRand = () => {
+/**@function tClassName TerseCSS classname generator function */
+const tClassName = () => {
   const r1 = alpha[Math.floor(Math.random() * 25)];
   const r2 = alpha[Math.floor(Math.random() * 25)];
   const r3 = alpha[Math.floor(Math.random() * 25)];
@@ -114,6 +119,7 @@ const shRand = () => {
 
   return `${r1}${r2}${r5}${r4}${r6}${r3}${r5}${r6}`;
 };
+
 
 const shOneLiner = (command: string) => {
   switch (command) {
@@ -127,9 +133,11 @@ const shOneLiner = (command: string) => {
   }
 };
 
-export const shUtils = {
-  com: shCommands,
-  media: shMedia,
-  rand: shRand,
+
+/**@method tUtils TerseCSS utility function */
+export const tUtils = {
+  com: tCommands,
+  media: tMedia,
+  classname: tClassName,
   one: shOneLiner
 };

@@ -1,15 +1,15 @@
 
 ///<reference lib="dom" />
 
-import { shUtils } from "./utils"
+import { tUtils } from "./utils"
 import type { ASTType, Token } from "./utils";
 
-/**@function shLexer Lexer function */
-function shLexer(sh: string) {
+/**@function tLexer terseCSS Lexer function */
+function tLexer(sh: string) {
   const tokens: Token[] = [];
-  //console.log("sh: ", sh)
-  const strArr = sh.split(" ");
-
+  
+  if (sh !== "") {
+    const strArr = sh.split(" ")
   strArr.forEach((sh) => {
     const shArr = sh.split("-");
     const commandOption = shArr[0].split(":");
@@ -60,18 +60,21 @@ function shLexer(sh: string) {
     } else {
       const obj: Token = {
         command: "center",
-        value: shUtils.one(commandOption[0])
+        value: tUtils.one(commandOption[0])
       };
 
       tokens.push(obj);
     }
   });
+    
+    return tokens
+  } 
 
   return tokens;
 }
 
-/**@function shAST AST function */
-function shAST(tks: Token[]) {
+/**@function tAST terseCSS AST function */
+function tAST(tks: Token[]) {
   const ast: ASTType[] = [];
 
   tks.forEach((tk) => {
@@ -80,9 +83,9 @@ function shAST(tks: Token[]) {
     if (tk?.media !== undefined) {
       //console.log(tk)
       if (tk.option) {
-        const command = shUtils.com(tk.command);
+        const command = tUtils.com(tk.command);
         const value = tk.value;
-        const media = shUtils.media(tk.media);
+        const media = tUtils.media(tk.media);
         const text = `${command}:${value};`;
 
         const obj: ASTType = {
@@ -95,9 +98,9 @@ function shAST(tks: Token[]) {
 
         ast.push(obj);
       } else {
-        const command = shUtils.com(tk.command);
+        const command = tUtils.com(tk.command);
         const value = tk.value;
-        const media = shUtils.media(tk.media);
+        const media = tUtils.media(tk.media);
         const text = `${command}:${value};`;
 
         const obj: ASTType = {
@@ -112,7 +115,7 @@ function shAST(tks: Token[]) {
       }
     } else {
       if (tk.option) {
-        const command = shUtils.com(tk.command);
+        const command = tUtils.com(tk.command);
         const value = tk.value;
         const text = `${command}:${value};`;
 
@@ -127,7 +130,7 @@ function shAST(tks: Token[]) {
       } else {
         //console.log(tk)
 
-        const command = shUtils.com(tk.command);
+        const command = tUtils.com(tk.command);
         const value = tk.value;
         const text = `${command}:${value};`;
 
@@ -146,8 +149,8 @@ function shAST(tks: Token[]) {
 }
 
 const cssRoot = ":root{font-synthesis:none; text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}"
-/**@class SHCSS */
-class ShCSS {
+/**@class TerseCSS */
+class TerseCSS {
   private styles: string[];
   constructor() {
     this.styles = [cssRoot, "*{margin:0;padding:0}"];
@@ -155,8 +158,8 @@ class ShCSS {
 
   /**@function Sh shorthand CSS */
   css(sh: string) {
-    const tks = shLexer(sh);
-    const ast = shAST(tks);
+    const tks = tLexer(sh);
+    const ast = tAST(tks);
     const classname = this.#runtime(ast);
     return classname;
   }
@@ -167,7 +170,7 @@ class ShCSS {
 
     let rules = "";
     let mediaRules = "";
-    const className = shUtils.rand();
+    const className = tUtils.classname();
 
     ast.flatMap((tk: ASTType) => {
 
@@ -217,5 +220,10 @@ class ShCSS {
 }
 
 //main
-/**@instance of ShCSS */
-export const sh = new ShCSS();
+/**@instance of TerseCSS */
+export const tc = new TerseCSS();
+export const sh = new TerseCSS();
+export const t = new TerseCSS();
+export const terse = new TerseCSS();
+export const terseCSS = new TerseCSS();
+export default TerseCSS
