@@ -1,0 +1,3 @@
+
+*ShCSS
+**Short Hand CSS
