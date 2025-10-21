@@ -1,7 +1,5 @@
 
-# TerseCSS
-A lightweight, CSS Shorthand parser that generate the CSS Styles, append it to the document head and return the classname.
-
+# TerseCSS A lightweight CSS Framework with
 - 🚀 Zero dependencies
 - 🔌 Less API
 - 🛠️ Full TypeScript type inference
@@ -17,23 +15,18 @@ npm i tersecss
 ### Basic Class Example
 ```javascript
 
-//import any of this and use
-import { terseCSS } from "tersecss"
-import { terse } from "tersecss"
-
-//or any of this 
-import { tc } from "tersecss"
-import { t } from "tersecss"
-import { sh } from "tersecss"
-
-//or import the main 
+//import terseCSS and call init() for TerseCSS to start working
+import { terseCSS } from "../terse/index"
+terseCSS.init()
+//import the main class and call init() for TerseCSS to start working
 import TerseCSS from 'tersecss'
 const t = new TerseCSS()
+t.init()
 
 //use TerseCSS like this
 function HelloWorld() => {
     return(
-        <div className={t.css("w-100px h-100dvh sm:w-10px")}>
+        <div class="w-100px h-100dvh sm:w-10px">
             <h1>Hello World</h1>
         </div>
     )

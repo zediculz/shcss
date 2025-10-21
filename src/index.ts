@@ -7,68 +7,73 @@ import type { ASTType, Token } from "./utils";
 /**@function tLexer terseCSS Lexer function */
 function tLexer(sh: string) {
   const tokens: Token[] = [];
-  
+
   if (sh !== "") {
     const strArr = sh.split(" ")
-  strArr.forEach((sh) => {
-    const shArr = sh.split("-");
-    const commandOption = shArr[0].split(":");
+    strArr.forEach((sh) => {
+      const shArr = sh.split("-");
+      const commandOption = shArr[0].split(":");
 
-    if (shArr.length !== 1) {
-      const valueOption = shArr[1].split(":");
+      if (shArr.length !== 1) {
+        const valueOption = shArr[1].split(":");
 
-      //console.log(commandOption)
-      //console.log(valueOption)
+        //console.log(commandOption)
+        //console.log(valueOption)
 
-      if (commandOption.length === 2) {
-        if (valueOption.length === 2) {
-          const obj: Token = {
-            command: commandOption[1],
-            media: commandOption[0],
-            option: valueOption[1],
-            value: valueOption[0]
-          };
+        if (commandOption.length === 2) {
+          if (valueOption.length === 2) {
+            const obj: Token = {
+              command: commandOption[1],
+              media: commandOption[0],
+              option: valueOption[1],
+              value: valueOption[0],
+              raw: strArr.join(" ")
+            };
 
-          tokens.push(obj);
+            tokens.push(obj);
+          } else {
+            const obj: Token = {
+              command: commandOption[1],
+              value: valueOption[0],
+              media: commandOption[0],
+              raw: strArr.join(" ")
+            };
+
+            tokens.push(obj);
+          }
         } else {
-          const obj: Token = {
-            command: commandOption[1],
-            value: valueOption[0],
-            media: commandOption[0]
-          };
+          if (valueOption.length === 2) {
+            const obj: Token = {
+              command: shArr[0],
+              value: valueOption[0],
+              option: valueOption[1],
+              raw: strArr.join(" ")
+            };
 
-          tokens.push(obj);
+            tokens.push(obj);
+          } else {
+            const obj: Token = {
+              command: shArr[0],
+              value: shArr[1],
+              raw: strArr.join(" ")
+            };
+
+            tokens.push(obj);
+          }
         }
       } else {
-        if (valueOption.length === 2) {
-          const obj: Token = {
-            command: shArr[0],
-            value: valueOption[0],
-            option: valueOption[1]
-          };
+        const obj: Token = {
+          command: "center",
+          value: tUtils.one(commandOption[0]),
+          raw: strArr.join(" ")
+        };
 
-          tokens.push(obj);
-        } else {
-          const obj: Token = {
-            command: shArr[0],
-            value: shArr[1]
-          };
-
-          tokens.push(obj);
-        }
+        tokens.push(obj);
       }
-    } else {
-      const obj: Token = {
-        command: "center",
-        value: tUtils.one(commandOption[0])
-      };
+    });
 
-      tokens.push(obj);
-    }
-  });
-    
     return tokens
-  } 
+  }
 
   return tokens;
 }
@@ -93,7 +98,8 @@ function tAST(tks: Token[]) {
           value,
           option: tk.option,
           media,
-          res: text.trim()
+          res: text.trim(),
+          raw: tk.raw
         };
 
         ast.push(obj);
@@ -108,7 +114,8 @@ function tAST(tks: Token[]) {
           value,
           media,
           res: text.trim(),
-          mediaType: tk.media
+          mediaType: tk.media,
+          raw: tk.raw
         };
 
         ast.push(obj);
@@ -123,7 +130,8 @@ function tAST(tks: Token[]) {
           command,
           value,
           option: tk.option,
-          res: text.trim()
+          res: text.trim(),
+          raw: tk.raw
         };
 
         ast.push(obj);
@@ -137,7 +145,8 @@ function tAST(tks: Token[]) {
         const obj: ASTType = {
           command,
           value,
-          res: text.trim()
+          res: text.trim(),
+          raw: tk.raw
         };
 
         ast.push(obj);
@@ -149,14 +158,20 @@ function tAST(tks: Token[]) {
 }
 
 const cssRoot = ":root{font-synthesis:none; text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}"
+
 /**@class TerseCSS */
 class TerseCSS {
   private styles: string[];
+  private classes: string[];
+  private allClassList: { tag: string, classes: string, element: Element }[];
+
   constructor() {
     this.styles = [cssRoot, "*{margin:0;padding:0}"];
+    this.classes = []
+    this.allClassList = this.#getAllElementClassLists()
   }
 
-  /**@function Sh shorthand CSS */
+  /**@function TerseCSS method to convet shorthand to css */
   css(sh: string) {
     const tks = tLexer(sh);
     const ast = tAST(tks);
@@ -166,8 +181,6 @@ class TerseCSS {
 
   /**@method runtime Sh Runtime function */
   #runtime(ast: ASTType[]) {
-    //console.log(ast)
-
     let rules = "";
     let mediaRules = "";
     const className = tUtils.classname();
@@ -176,15 +189,15 @@ class TerseCSS {
 
       if (tk.media !== undefined) {
         //console.log(tk.mediaType)
-        if (tk.mediaType === "sm") { 
+        if (tk.mediaType === "sm") {
           mediaRules += `${tk.media}{.${className}{${tk.res}}}`;
         }
-        else if (tk.mediaType === "md") { 
+        else if (tk.mediaType === "md") {
           mediaRules += `${tk.media}{.${className}{${tk.res}}}`;
         }
         else if (tk.mediaType === "lg") {
           mediaRules += `${tk.media}{.${className}{${tk.res}}}`;
-        } 
+        }
 
         //mediaRules += `${tk.media}{.${className}{${tk.res}}}`;
       } else {
@@ -200,11 +213,13 @@ class TerseCSS {
       .split("@media")
       .filter(Boolean)
       .map((rule) => `@media${rule}`);
-    
+
 
     mediaRulesArray.forEach((mediaRule) => {
       this.styles.push(mediaRule);
     });
+
+    //console.log(mediaRules)
 
     const shStyleElement = document.createElement("style");
     document.head.appendChild(shStyleElement);
@@ -214,16 +229,46 @@ class TerseCSS {
       shSheet?.insertRule(rule, id);
     });
 
-    //console.log(this.buckets)
-    return className;
+    this.classes.push(className)
+    return className
+  }
+
+
+  #getAllElementClassLists() {
+    const allElements = document.querySelectorAll('*');
+    const classLists: { tag: string, classes: string, element: Element }[] = [];
+
+    allElements.forEach(element => {
+      if (element.classList && element.classList.length > 0) {
+        classLists.push({
+          tag: element.tagName?.toLocaleLowerCase(),
+          classes: Array.from(element.classList).join(" "),
+          element
+        });
+      }
+    });
+
+    return classLists
+  }
+
+  //entry point
+  init() {
+
+    this.allClassList = this.#getAllElementClassLists()
+    //console.log(this.allClassList)
+
+    this.allClassList.flatMap((cls) => {
+      //console.log(cls)
+      const tks = tLexer(cls?.classes)
+      const ast = tAST(tks);
+      const name = this.#runtime(ast)
+      cls.element.classList.add(name)
+    })
   }
 }
 
+
 //main
 /**@instance of TerseCSS */
-export const tc = new TerseCSS();
-export const sh = new TerseCSS();
-export const t = new TerseCSS();
-export const terse = new TerseCSS();
 export const terseCSS = new TerseCSS();
 export default TerseCSS

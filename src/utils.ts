@@ -5,6 +5,7 @@ export interface Token {
   option?: string;
   media?: string;
   mediaType?: string
+  raw?: string
 }
 
 export interface ASTType extends Token {

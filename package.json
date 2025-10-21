@@ -1,6 +1,6 @@
 {
   "name": "tersecss",
-  "version": "0.0.3",
+  "version": "0.0.5",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -13,14 +13,11 @@
     "build": "node esbuild.js"
   },
   "keywords": [
-    "css",
-    "shorthand",
-    "short",
-    "parser"
+    "css"
   ],
   "author": "Ademujimi oluwaseyi zediculz",
   "license": "MIT",
-  "description": "tersecss is a lightweight css shorthand parser",
+  "description": "tersecss is a lightweight css framework",
   "devDependencies": {
     "esbuild": "^0.25.11",
     "typescript": "^5.9.3",
