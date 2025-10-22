@@ -2,22 +2,32 @@
 ///<reference lib="dom" />
 
 import { defaultTheme, tUtils } from "./utils"
-import type { ASTType, TerseTheme, Token } from "./utils";
-
+import type { ASTType, TerseTheme, Token, Node } from "./utils";
 
 /**@class TerseCSS */
 class TerseCSS {
-  private styles: string[];
-  private allClassList: { tag: string, classes: string, element: Element }[];
+  private style: string[];
+  private classList: string[];
+  private nodeList: Node[];
   private theme: TerseTheme
+  private sheet: CSSStyleSheet|null
 
   constructor() {
     this.theme = defaultTheme
-    this.styles = [this.theme.root as string, `*{margin:0;padding:0;transition:${this.theme.transition}}`];
-    this.allClassList = this.#getAllElementClassLists()
+    this.style = [this.theme.root as string, `*{margin:0;padding:0;transition:${this.theme.transition}}`];
+    this.nodeList = []
+    this.classList = []
+    this.sheet = this.#DOM()
   }
 
-  /**@method tLexer terseCSS Lexer function */
+  #DOM() {
+    const shStyleElement = document.createElement("style");
+    document.head.appendChild(shStyleElement);
+    const shSheet = shStyleElement.sheet;
+    return shSheet
+  }
+
+  /**@method tLexer terseCSS Lexer */
   #tLexer(sh: string) {
     //lexer token
     const tokens: Token[] = [];
@@ -91,7 +101,7 @@ class TerseCSS {
     return tokens;
   }
 
-  /**@method tAST terseCSS AST function */
+  /**@method tAST terseCSS AST */
   #tAST(tks: Token[]) {
     const ast: ASTType[] = [];
 
@@ -169,11 +179,9 @@ class TerseCSS {
     return ast;
   }
 
-
-  /**@method runtime Sh Runtime function */
+  /**@method runtime terseCSS runtime */
   #runtime(tks: Token[]) {
     const ast: ASTType[] = this.#tAST(tks)
-    //console.log(ast)
 
     let rules = "";
     let mediaRules = "";
@@ -200,7 +208,7 @@ class TerseCSS {
     });
 
     const rule = `.${className}{${rules}}`;
-    this.styles.push(rule);
+    this.style.push(rule);
 
     const mediaRulesArray = mediaRules
       .split("@media")
@@ -208,31 +216,29 @@ class TerseCSS {
       .map((rule) => `@media${rule}`);
 
     mediaRulesArray.forEach((mediaRule) => {
-      this.styles.push(mediaRule);
+      this.style.push(mediaRule);
     });
 
-    const shStyleElement = document.createElement("style");
-    document.head.appendChild(shStyleElement);
-    const shSheet = shStyleElement.sheet;
-
-    this.styles.forEach((rule, id) => {
-      shSheet?.insertRule(rule, id);
+    this.style.forEach((rule, id) => {
+      this.sheet?.insertRule(rule, id);
     });
 
+    this.classList.push(className)
     return className
   }
 
 
-  #getAllElementClassLists() {
+  #getNodeList() {
     const allElements = document.querySelectorAll('*');
-    const classLists: { tag: string, classes: string, element: Element }[] = [];
+    const classLists: Node[] = [];
 
-    allElements.forEach(element => {
+    allElements.forEach((element, id) => {
       if (element.classList && element.classList.length > 0) {
         classLists.push({
           tag: element.tagName?.toLocaleLowerCase(),
           classes: Array.from(element.classList).join(" "),
-          element
+          element,
+          id
         });
       }
     });
@@ -245,14 +251,16 @@ class TerseCSS {
   init(theme?: TerseTheme) {
     this.theme = tUtils.th(theme as TerseTheme)
 
-    this.allClassList = this.#getAllElementClassLists()
-    //console.log(this.allClassList)
+    this.nodeList = this.#getNodeList()
 
-    this.allClassList.flatMap((cls) => {
-      //console.log(cls)
-      const tks = this.#tLexer(cls?.classes)
+    this.nodeList.flatMap((node, id) => {
+      const tks = this.#tLexer(node?.classes)
       const name = this.#runtime(tks)
-      cls.element.classList.add(name)
+      node.element.classList.add(name)
+
+      if (id === this.nodeList.length - 1) {
+        console.log("END OF NODELIST")
+      }
     })
   }
 }

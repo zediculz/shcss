@@ -12,3 +12,4 @@ const th:TerseTheme = {
 }
 
 terseCSS.init(th)
+console.log(terseCSS)

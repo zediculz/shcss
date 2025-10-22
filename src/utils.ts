@@ -12,6 +12,8 @@ export interface ASTType extends Token {
   res: string;
 }
 
+export interface Node { tag: string, classes: string, element: Element, id: number }
+
 export interface TerseTheme {
   color?: {
     primary?: string,
@@ -307,7 +309,6 @@ export function resTheme(theme: TerseTheme) {
   //console.log(newTheme)
   return newTheme
 }
-
 
 /**@method tUtils TerseCSS utility functions */
 export const tUtils = {
