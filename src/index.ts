@@ -35,9 +35,9 @@ class TerseCSS {
           const valueOption = shArr[1].split(":");
 
           if (commandOption.length === 2) {
-            
+
             if (valueOption.length === 2) {
-           
+
               const obj: Token = {
                 command: commandOption[1],
                 media: commandOption[0],
@@ -45,7 +45,7 @@ class TerseCSS {
                 value: valueOption[0],
                 raw: strArray.join(" ")
               };
-            
+
               tokens.push(obj);
             } else {
               const obj: Token = {
@@ -54,7 +54,7 @@ class TerseCSS {
                 media: commandOption[0],
                 raw: strArray.join(" ")
               };
-              
+
               tokens.push(obj);
             }
           } else {
@@ -65,7 +65,7 @@ class TerseCSS {
                 option: valueOption[1],
                 raw: strArray.join(" ")
               };
-             
+
               tokens.push(obj);
             } else {
               const obj: Token = {
@@ -73,7 +73,7 @@ class TerseCSS {
                 value: shArr[1],
                 raw: strArray.join(" ")
               };
-             
+
               tokens.push(obj);
             }
           }
@@ -244,7 +244,7 @@ class TerseCSS {
   /**@method init TerseCSS Entry Point */
   init(theme?: TerseTheme) {
     this.theme = tUtils.th(theme as TerseTheme)
-    
+
     this.allClassList = this.#getAllElementClassLists()
     //console.log(this.allClassList)
 

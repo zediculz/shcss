@@ -136,8 +136,6 @@ const tCommands = (command: string) => {
       return "flex-wrap";
     case "flexf":
       return "flex-flow";
-    case "v":
-      return "overflow";
 
     //grid
     case "gtc":
@@ -246,7 +244,7 @@ const tMedia = (media: string, theme?: TerseTheme) => {
       return "@media (prefers-color-scheme: dark)";
     case "hover":
       return "hover";
-     case "focus":
+    case "focus":
       return "focus";
 
     default:
