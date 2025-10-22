@@ -4,7 +4,6 @@
 import { defaultTheme, tUtils } from "./utils"
 import type { ASTType, TerseTheme, Token } from "./utils";
 
-const cssRoot = ":root{font-synthesis:none; text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}"
 
 /**@class TerseCSS */
 class TerseCSS {
@@ -13,9 +12,9 @@ class TerseCSS {
   private theme:TerseTheme
 
   constructor() {
-    this.styles = [cssRoot, "*{margin:0;padding:0;transition:ease-in}"];
-    this.allClassList = this.#getAllElementClassLists()
     this.theme = defaultTheme
+    this.styles = [this.theme.root as string, `*{margin:0;padding:0;${this.theme.transition}}`];
+    this.allClassList = this.#getAllElementClassLists()
   }
 
   /**@function TerseCSS method to convet shorthand to css */
@@ -85,10 +84,12 @@ class TerseCSS {
           }
         }
       } else {
+        //ONELINERS ARE STILL AN ISSUE
         const obj: Token = {
-          command: "center",
+          command: commandOption[0],
           value: tUtils.one(commandOption[0]),
-          raw: strArr.join(" ")
+          raw: strArr.join(" "),
+          mediaType: "oneliner"
         };
 
         tokens.push(obj);
@@ -181,7 +182,9 @@ class TerseCSS {
 
 
   /**@method runtime Sh Runtime function */
-  #runtime(ast: ASTType[]) {
+  #runtime(tks: Token[]) {
+    const ast: ASTType[] = this.#tAST(tks)
+
     let rules = "";
     let mediaRules = "";
     const className = tUtils.classname();
@@ -254,10 +257,7 @@ class TerseCSS {
   //entry point
   /**@method init TerseCSS Entry Point */
   init(theme?:TerseTheme) {
-    const newTheme = {...this.theme, ...theme}
-    this.theme = newTheme
-
-    //console.log(newTheme)
+    tUtils.th(theme as TerseTheme)
 
     this.allClassList = this.#getAllElementClassLists()
     //console.log(this.allClassList)
@@ -265,8 +265,7 @@ class TerseCSS {
     this.allClassList.flatMap((cls) => {
       //console.log(cls)
       const tks = this.#tLexer(cls?.classes)
-      const ast = this.#tAST(tks);
-      const name = this.#runtime(ast)
+      const name = this.#runtime(tks)
       cls.element.classList.add(name)
     })
   }
