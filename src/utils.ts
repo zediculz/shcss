@@ -92,7 +92,7 @@ const tCommands = (command: string) => {
       return "right";
     case "z":
       return "z-index";
-     case "pd":
+    case "pd":
       return "padding";
     case "pdl":
       return "padding-left";
@@ -138,7 +138,7 @@ const tCommands = (command: string) => {
       return "flex-flow";
     case "v":
       return "overflow";
-   
+
     //grid
     case "gtc":
       return "grid-template-columns";
@@ -152,11 +152,11 @@ const tCommands = (command: string) => {
     //text
     case "font":
       return "font-size";
-     case "fontw":
+    case "fontw":
       return "font-weight";
-     case "fonts":
+    case "fonts":
       return "font-style";
-     case "fontf":
+    case "fontf":
       return "font-family";
     case "text":
       return "text-align";
@@ -164,7 +164,7 @@ const tCommands = (command: string) => {
       return "text-decoration";
     case "textt":
       return "text-transform";
-     case "color":
+    case "color":
       return "color";
     case "line":
       return "line-height";
@@ -172,22 +172,22 @@ const tCommands = (command: string) => {
       return "letter-spacing";
     case "word":
       return "word-spacing";
-    
-    
+
+
     //background
     case "bg":
       return "background";
-     case "bgc":
+    case "bgc":
       return "background-color";
-     case "bgi":
+    case "bgi":
       return "background-image";
-     case "bgr":
+    case "bgr":
       return "background-repeat";
-     case "bgp":
+    case "bgp":
       return "background-position";
-     case "bgs":
+    case "bgs":
       return "background-size";
-    
+
     //border
     case "bd":
       return "border";
@@ -195,11 +195,11 @@ const tCommands = (command: string) => {
       return "border-width";
     case "bds":
       return "border-style";
-     case "bdc":
+    case "bdc":
       return "border-color";
-     case "bdr":
+    case "bdr":
       return "border-radius";
-    
+
     //effects
     case "cur":
       return "cursor";
@@ -207,7 +207,7 @@ const tCommands = (command: string) => {
       return "opacity";
     case "boxs":
       return "bos-shadow";
-     case "bs":
+    case "bs":
       return "bos-shadow";
     case "filter":
       return "filter";
@@ -215,7 +215,7 @@ const tCommands = (command: string) => {
       return "rotate";
     case "scale":
       return "scale";
-     case "sc":
+    case "sc":
       return "scale";
     case "trsl":
       return "translate";
@@ -232,7 +232,7 @@ const tCommands = (command: string) => {
 //responsive
 /**@function tMedia responsive media query */
 const tMedia = (media: string, theme?: TerseTheme) => {
- 
+
   const bk = theme?.breakpoints
 
   switch (media) {
@@ -246,6 +246,8 @@ const tMedia = (media: string, theme?: TerseTheme) => {
       return "@media (prefers-color-scheme: dark)";
     case "hover":
       return "hover";
+     case "focus":
+      return "focus";
 
     default:
       return "";
@@ -269,20 +271,19 @@ const shOneLiner = (command: string) => {
   switch (command) {
     case "center":
       return "d-flex align-center justify-center";
-    case "@container":
-      return "w-100% h-100dvh";
-
+    case "container":
+      return "w-100% h-100dvh d-flex";
+    case "flex":
+      return "d-flex align-center justify-center";
     default:
-      return command;
+      return "";
   }
 };
 
-export const cssRoot = ":root{font-synthesis:none; text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}"
-
 export const defaultTheme: TerseTheme = {
   color: {
-    primary: "#222",
-    secondary: "lime"
+    primary: "#000",
+    secondary: "#f5f5f5"
   },
   breakpoints: {
     sm: "375px",
@@ -290,24 +291,27 @@ export const defaultTheme: TerseTheme = {
     lg: "1245px"
   },
   transition: ".3s all ease-in",
-  root: cssRoot
+  root: ":root{font-synthesis:none; text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}"
 }
 
-export function resTheme(theme:TerseTheme) {
+export function resTheme(theme: TerseTheme) {
   //console.log(theme)
+  const tColor = theme?.color === undefined ? {} : theme?.color
+  const tBk = theme?.breakpoints === undefined ? {} : theme?.breakpoints
+
   const newTheme: TerseTheme = {
-    color: { ...defaultTheme.color, ...theme.color },
-    breakpoints: { ...defaultTheme.breakpoints, ...theme.breakpoints },
+    color: { ...defaultTheme.color, ...tColor },
+    breakpoints: { ...defaultTheme.breakpoints, ...tBk },
     root: theme?.root === undefined ? defaultTheme.root : theme.root,
     transition: theme?.transition === undefined ? defaultTheme.transition : theme.transition
   }
 
-  console.log(newTheme)
+  //console.log(newTheme)
   return newTheme
 }
 
 
-/**@method tUtils TerseCSS utility function */
+/**@method tUtils TerseCSS utility functions */
 export const tUtils = {
   com: tCommands,
   media: tMedia,
