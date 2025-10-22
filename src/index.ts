@@ -7,16 +7,16 @@ import type { ASTType, TerseTheme, Token, Node } from "./utils";
 /**@class TerseCSS */
 class TerseCSS {
   private style: string[];
-  private classList: string[];
-  private nodeList: Node[];
+  private classlist: string[];
+  private nodelist: Node[];
   private theme: TerseTheme
   private sheet: CSSStyleSheet|null
 
   constructor() {
     this.theme = defaultTheme
     this.style = [this.theme.root as string, `*{margin:0;padding:0;transition:${this.theme.transition}}`];
-    this.nodeList = []
-    this.classList = []
+    this.nodelist = []
+    this.classlist = []
     this.sheet = this.#DOM()
   }
 
@@ -223,7 +223,7 @@ class TerseCSS {
       this.sheet?.insertRule(rule, id);
     });
 
-    this.classList.push(className)
+    this.classlist.push(className)
     return className
   }
 
@@ -251,16 +251,12 @@ class TerseCSS {
   init(theme?: TerseTheme) {
     this.theme = tUtils.th(theme as TerseTheme)
 
-    this.nodeList = this.#getNodeList()
+    this.nodelist = this.#getNodeList()
 
-    this.nodeList.flatMap((node, id) => {
+    this.nodelist.flatMap((node, id) => {
       const tks = this.#tLexer(node?.classes)
       const name = this.#runtime(tks)
       node.element.classList.add(name)
-
-      if (id === this.nodeList.length - 1) {
-        console.log("END OF NODELIST")
-      }
     })
   }
 }

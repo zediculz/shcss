@@ -1,7 +1,6 @@
-import { terseCSS } from "../../src/index"
-import type { TerseTheme } from "../../src/utils"
+import { terseCSS } from "tersecss"
 
-const th:TerseTheme = {
+terseCSS.init({
     color: {
         primary: "purple"
     },
@@ -9,7 +8,6 @@ const th:TerseTheme = {
         sm: "390px",
         md: "600px"
     }
-}
+})
 
-terseCSS.init(th)
 console.log(terseCSS)
