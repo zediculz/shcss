@@ -12,6 +12,31 @@ export interface ASTType extends Token {
   res: string;
 }
 
+export interface TerseTheme {
+  color?: {
+    primary?: string,
+    secondary?: string
+  }
+
+  breakpoints?: {
+    sm?: string,
+    md?: string
+    lg?: string
+  }
+}
+
+export const defaultTheme: TerseTheme = {
+  color: {
+    primary: "#222",
+    secondary: "lime"
+  },
+  breakpoints: {
+    sm: "375px",
+    md: "625px",
+    lg: "1245px"
+  }
+}
+
 const alpha = [
   "a",
   "b",
@@ -41,7 +66,7 @@ const alpha = [
   "z"
 ];
 
-//responsive
+
 /**@function tCommands all TerseCSS css shorthand commands and its utility function */
 const tCommands = (command: string) => {
   switch (command) {
@@ -49,6 +74,8 @@ const tCommands = (command: string) => {
       return "background";
     case "h":
       return "height";
+     case "w":
+      return "width";
     case "d":
       return "display";
     case "p":
@@ -57,8 +84,8 @@ const tCommands = (command: string) => {
       return "align-items";
     case "justify":
       return "justify-content";
-    case "w":
-      return "width";
+    case "flexd":
+      return "flex-direction";
     case "overflow":
       return "overflow";
     case "font":
@@ -87,6 +114,20 @@ const tCommands = (command: string) => {
       return "font-weight";
     case "text":
       return "text-align";
+    case "pos":
+      return "position";
+    case "top":
+      return "top";
+    case "bottom":
+      return "bottom";
+    case "left":
+      return "left";
+    case "right":
+      return "right";
+    case "z":
+      return "z-index";
+    case "cur":
+      return "cursor";
 
     default:
       return command;
@@ -95,14 +136,21 @@ const tCommands = (command: string) => {
 
 //responsive
 /**@function tMedia responsive media query */
-const tMedia = (media: string) => {
+const tMedia = (media: string, theme?: TerseTheme) => {
+ 
+  const bk = theme?.breakpoints
+
   switch (media) {
     case "sm":
-      return "@media screen and (max-width:425px)";
+      return `@media screen and (max-width:${bk?.sm})`;
     case "md":
-      return "@media screen and (max-width:625px)";
+      return `@media screen and (max-width:${bk?.md})`;
     case "lg":
-      return "@media screen and (max-width:1245px)";
+      return `@media screen and (min-width:${bk?.lg})`;
+    case "dark":
+      return "@media (prefers-color-scheme: dark)";
+    case "hover":
+      return "hover";
 
     default:
       return "";

@@ -1,15 +1,38 @@
 
 ///<reference lib="dom" />
 
-import { tUtils } from "./utils"
-import type { ASTType, Token } from "./utils";
+import { defaultTheme, tUtils } from "./utils"
+import type { ASTType, TerseTheme, Token } from "./utils";
 
-/**@function tLexer terseCSS Lexer function */
-function tLexer(sh: string) {
+const cssRoot = ":root{font-synthesis:none; text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}"
+
+/**@class TerseCSS */
+class TerseCSS {
+  private styles: string[];
+  private allClassList: { tag: string, classes: string, element: Element }[];
+  private theme:TerseTheme
+
+  constructor() {
+    this.styles = [cssRoot, "*{margin:0;padding:0;transition:ease-in}"];
+    this.allClassList = this.#getAllElementClassLists()
+    this.theme = defaultTheme
+  }
+
+  /**@function TerseCSS method to convet shorthand to css */
+  css(sh: string) {
+    const tks = this.#tLexer(sh);
+    const ast = this.#tAST(tks);
+    const classname = this.#runtime(ast);
+    return classname;
+  }
+
+  /**@method tLexer terseCSS Lexer function */
+#tLexer(sh: string) {
   const tokens: Token[] = [];
 
   if (sh !== "") {
     const strArr = sh.split(" ")
+
     strArr.forEach((sh) => {
       const shArr = sh.split("-");
       const commandOption = shArr[0].split(":");
@@ -77,16 +100,15 @@ function tLexer(sh: string) {
 
   return tokens;
 }
-
-/**@function tAST terseCSS AST function */
-function tAST(tks: Token[]) {
+  
+/**@method tAST terseCSS AST function */
+#tAST(tks: Token[]) {
   const ast: ASTType[] = [];
 
   tks.forEach((tk) => {
     //console.log(tk)
 
     if (tk?.media !== undefined) {
-      //console.log(tk)
       if (tk.option) {
         const command = tUtils.com(tk.command);
         const value = tk.value;
@@ -106,7 +128,7 @@ function tAST(tks: Token[]) {
       } else {
         const command = tUtils.com(tk.command);
         const value = tk.value;
-        const media = tUtils.media(tk.media);
+        const media = tUtils.media(tk.media, this.theme);
         const text = `${command}:${value};`;
 
         const obj: ASTType = {
@@ -157,27 +179,6 @@ function tAST(tks: Token[]) {
   return ast;
 }
 
-const cssRoot = ":root{font-synthesis:none; text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}"
-
-/**@class TerseCSS */
-class TerseCSS {
-  private styles: string[];
-  private classes: string[];
-  private allClassList: { tag: string, classes: string, element: Element }[];
-
-  constructor() {
-    this.styles = [cssRoot, "*{margin:0;padding:0}"];
-    this.classes = []
-    this.allClassList = this.#getAllElementClassLists()
-  }
-
-  /**@function TerseCSS method to convet shorthand to css */
-  css(sh: string) {
-    const tks = tLexer(sh);
-    const ast = tAST(tks);
-    const classname = this.#runtime(ast);
-    return classname;
-  }
 
   /**@method runtime Sh Runtime function */
   #runtime(ast: ASTType[]) {
@@ -198,6 +199,9 @@ class TerseCSS {
         else if (tk.mediaType === "lg") {
           mediaRules += `${tk.media}{.${className}{${tk.res}}}`;
         }
+        else if (tk.mediaType === "hover") {
+          rules += `&:${tk.mediaType}{${tk.res}}`;
+        }
 
         //mediaRules += `${tk.media}{.${className}{${tk.res}}}`;
       } else {
@@ -206,7 +210,6 @@ class TerseCSS {
     });
 
     const rule = `.${className}{${rules}}`;
-    //console.log(rule)
     this.styles.push(rule);
 
     const mediaRulesArray = mediaRules
@@ -214,12 +217,9 @@ class TerseCSS {
       .filter(Boolean)
       .map((rule) => `@media${rule}`);
 
-
     mediaRulesArray.forEach((mediaRule) => {
       this.styles.push(mediaRule);
     });
-
-    //console.log(mediaRules)
 
     const shStyleElement = document.createElement("style");
     document.head.appendChild(shStyleElement);
@@ -229,7 +229,7 @@ class TerseCSS {
       shSheet?.insertRule(rule, id);
     });
 
-    this.classes.push(className)
+    //this.classes.push(className)
     return className
   }
 
@@ -252,21 +252,25 @@ class TerseCSS {
   }
 
   //entry point
-  init() {
+  /**@method init TerseCSS Entry Point */
+  init(theme?:TerseTheme) {
+    const newTheme = {...this.theme, ...theme}
+    this.theme = newTheme
+
+    //console.log(newTheme)
 
     this.allClassList = this.#getAllElementClassLists()
     //console.log(this.allClassList)
 
     this.allClassList.flatMap((cls) => {
       //console.log(cls)
-      const tks = tLexer(cls?.classes)
-      const ast = tAST(tks);
+      const tks = this.#tLexer(cls?.classes)
+      const ast = this.#tAST(tks);
       const name = this.#runtime(ast)
       cls.element.classList.add(name)
     })
   }
 }
-
 
 //main
 /**@instance of TerseCSS */
