@@ -5,16 +5,25 @@ export interface Token {
   option?: string;
   media?: string;
   mediaType?: string
-  raw?: string
+  raw?: string,
+  rawClass?: string,
+  effect?: string
 }
 
-export interface ASTType extends Token {
-  res: string;
+export interface ASTType {
+  res: string
+  env?: "global"|"media"|"effect"|"mediaEffect"
+  rawClass?: string
+  option?: string;
+  media?: string;
+  mediaType?: string
+  effect?: string,
 }
 
 export interface Node { tag: string, classes: string, element: Element, id: number }
 
 export interface TerseTheme {
+  title?: string,
   color?: {
     primary?: string,
     secondary?: string
@@ -25,8 +34,6 @@ export interface TerseTheme {
     md?: string
     lg?: string
   },
-
-  transition?: string,
   root?: string
 }
 
@@ -223,13 +230,17 @@ const tCommands = (command: string) => {
       return "transition";
     case "ani":
       return "animation";
+    
+    //self codes
+    case "space":
+      return "margin-top"
 
     default:
       return command;
   }
 };
 
-//responsive
+
 /**@function tMedia responsive media query */
 const tMedia = (media: string, theme?: TerseTheme) => {
 
@@ -237,13 +248,13 @@ const tMedia = (media: string, theme?: TerseTheme) => {
 
   switch (media) {
     case "sm":
-      return `@media screen and (max-width:${bk?.sm})`;
+      return `@media screen and (${bk?.sm})`;
     case "md":
-      return `@media screen and (max-width:${bk?.md})`;
+      return `@media screen and (${bk?.md})`;
     case "lg":
-      return `@media screen and (min-width:${bk?.lg})`;
+      return `@media screen and (${bk?.lg})`;
     case "dark":
-      return "@media (prefers-color-scheme: dark)";
+      return `@media (prefers-color-scheme: ${media})`;
     case "hover":
       return "hover";
     case "focus":
@@ -255,7 +266,8 @@ const tMedia = (media: string, theme?: TerseTheme) => {
 };
 
 /**@function tClassName TerseCSS classname generator function */
-const tClassName = () => {
+const tClassName = (node: Node) => {
+  const tag = node.tag
   const r1 = alpha[Math.floor(Math.random() * 25)];
   const r2 = alpha[Math.floor(Math.random() * 25)];
   const r3 = alpha[Math.floor(Math.random() * 25)];
@@ -263,7 +275,7 @@ const tClassName = () => {
   const r5 = alpha[Math.floor(Math.random() * 15)];
   const r6 = alpha[Math.floor(Math.random() * 15)];
 
-  return `${r1}${r2}${r5}${r4}${r6}${r3}${r5}${r6}`;
+  return `${tag}_${r1}${r2}${r5}${r4}${r6}${r3}${r5}${r6}`;
 };
 
 
@@ -274,23 +286,23 @@ const shOneLiner = (command: string) => {
     case "container":
       return "w-100% h-100dvh d-flex";
     case "flex":
-      return "d-flex align-center justify-center";
+      return "d-flex align-center justify-start";
     default:
       return "";
   }
 };
 
 export const defaultTheme: TerseTheme = {
+  title: "ms",
   color: {
     primary: "#000",
     secondary: "#f5f5f5"
   },
   breakpoints: {
-    sm: "375px",
-    md: "625px",
-    lg: "1245px"
+    sm: "max-width:375px",
+    md: "max-width:768px",
+    lg: "min-width:1245px"
   },
-  transition: ".3s all ease-in",
   root: ":root{font-synthesis:none; text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}"
 }
 
@@ -300,14 +312,25 @@ export function resTheme(theme: TerseTheme) {
   const tBk = theme?.breakpoints === undefined ? {} : theme?.breakpoints
 
   const newTheme: TerseTheme = {
+    title: theme?.title === undefined ? defaultTheme.title : theme.title,
     color: { ...defaultTheme.color, ...tColor },
     breakpoints: { ...defaultTheme.breakpoints, ...tBk },
-    root: theme?.root === undefined ? defaultTheme.root : theme.root,
-    transition: theme?.transition === undefined ? defaultTheme.transition : theme.transition
+    root: theme?.root === undefined ? defaultTheme.root : theme.root
   }
 
   //console.log(newTheme)
   return newTheme
+}
+
+function resolveEnv(tk:ASTType) {
+  const env = {
+    global: tk?.env === "global",
+    effect: tk?.env === "effect",
+    media: tk.env === "media",
+    mediaEffect: tk?.env === "mediaEffect",
+  }
+
+  return env
 }
 
 /**@method tUtils TerseCSS utility functions */
@@ -316,5 +339,6 @@ export const tUtils = {
   media: tMedia,
   classname: tClassName,
   one: shOneLiner,
-  th: resTheme
+  th: resTheme,
+  env: resolveEnv
 };

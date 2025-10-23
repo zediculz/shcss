@@ -1,13 +1,15 @@
-import { terseCSS } from "tersecss"
+import { terseCSS, createTheme } from "../../src/index"
 
-terseCSS.init({
+const myThemes = createTheme({
     color: {
         primary: "purple"
     },
     breakpoints: {
-        sm: "390px",
-        md: "600px"
+        sm: "max-width:390px",
+        md: "max-width:768px"
     }
 })
+
+terseCSS.init(myThemes)
 
 console.log(terseCSS)

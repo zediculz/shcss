@@ -1,214 +1,232 @@
-
 ///<reference lib="dom" />
 
-import { defaultTheme, tUtils } from "./utils"
-import type { ASTType, TerseTheme, Token, Node } from "./utils";
+import { defaultTheme, tUtils } from "./utils";
+import type { ASTType, Node, TerseTheme, Token } from "./utils";
 
 /**@class TerseCSS */
 class TerseCSS {
   private style: string[];
   private classlist: string[];
   private nodelist: Node[];
-  private theme: TerseTheme
-  private sheet: CSSStyleSheet|null
+  private theme: TerseTheme;
+  private sheet: CSSStyleSheet | null;
 
   constructor() {
-    this.theme = defaultTheme
-    this.style = [this.theme.root as string, `*{margin:0;padding:0;transition:${this.theme.transition}}`];
-    this.nodelist = []
-    this.classlist = []
-    this.sheet = this.#DOM()
+    this.theme = defaultTheme;
+    this.style = [this.theme.root as string, `*{margin:0;padding:0;}`];
+    this.nodelist = [];
+    this.classlist = [];
+    this.sheet = this.#DOM();
   }
 
   #DOM() {
     const shStyleElement = document.createElement("style");
     document.head.appendChild(shStyleElement);
     const shSheet = shStyleElement.sheet;
-    return shSheet
+    return shSheet;
   }
 
-  /**@method tLexer terseCSS Lexer */
-  #tLexer(sh: string) {
-    //lexer token
+  /**@method #lexer terseCSS Lexer */
+  #lexer(sh: string) {
     const tokens: Token[] = [];
 
-    if (sh !== "") {
-      //shorthand string array
-      const strArray = sh.split(" ")
+    if (sh === "") {
+      return tokens;
+    } else {
+      //shorthand are not empty
 
-      strArray.forEach((sh) => {
-        //shorthand array
-        const shArr = sh.split("-");
-        const commandOption = shArr[0].split(":")
+      const shStrArray = sh.split(" ");
+      shStrArray.flatMap((shArray) => {
+        const shSplit = shArray.split("-");
 
-        if (shArr.length !== 1) {
-          const valueOption = shArr[1].split(":");
+        if (shSplit.length === 1) {
+          //One Line codes
+          this.#lexer(tUtils.one(shArray)).flatMap((obj) => tokens.push(obj));
+        } else {
+          //All others
+          const commandArray = shSplit[0];
+          const valueArray = shSplit[1];
 
-          if (commandOption.length === 2) {
+          const commands = commandArray.split(":");
+          const values = valueArray.split(":");
 
-            if (valueOption.length === 2) {
-
-              const obj: Token = {
-                command: commandOption[1],
-                media: commandOption[0],
-                option: valueOption[1],
-                value: valueOption[0],
-                raw: strArray.join(" ")
+          if (commands.length === 1) {
+            //one command
+            if (values.length === 1) {
+              //one command one value
+              const token: Token = {
+                command: commands[0],
+                value: values[0],
+                rawClass: sh,
               };
 
-              tokens.push(obj);
-            } else {
-              const obj: Token = {
-                command: commandOption[1],
-                value: valueOption[0],
-                media: commandOption[0],
-                raw: strArray.join(" ")
-              };
-
-              tokens.push(obj);
+              tokens.push(token);
+            } else if (values.length === 2) {
+              //one command, two values
+              const valueOpt = isNaN(parseInt(values[1]))
+                ? values.join("-")
+                : values[1];
+              tokens.push({
+                command: commands[0],
+                value: valueOpt,
+                option: values[1],
+                rawClass: sh,
+              });
             }
-          } else {
-            if (valueOption.length === 2) {
-              const obj: Token = {
-                command: shArr[0],
-                value: valueOption.join("-"),
-                option: valueOption[1],
-                raw: strArray.join(" ")
-              };
+          } else if (commands.length === 2) {
+            const cOption = commands[0];
+            //two commands
+            if (
+              cOption === "sm" || cOption === "md" || cOption === "lg" ||
+              cOption === "dark"
+            ) {
+              //responsive option
+              if (values.length === 1) {
+                //two command-Responsive option and one value
+                const token: Token = {
+                  command: commands[1],
+                  value: values[0],
+                  rawClass: sh,
+                  mediaType: cOption,
+                };
 
-              tokens.push(obj);
-            } else {
-              const obj: Token = {
-                command: shArr[0],
-                value: shArr[1],
-                raw: strArray.join(" ")
-              };
+                tokens.push(token);
+              } else if (values.length === 2) {
+                //two commands, two values
+              }
+            } else if (cOption === "hover") {
+              //effect option
+              if (values.length === 1) {
+                //one value for effect
+                tokens.push({
+                  command: commands[1],
+                  value: values[0],
+                  effect: commands[0],
+                  rawClass: sh,
+                });
+              } else {
+                //multiple value for effect option
+              }
+            }
+          } else if (commands.length === 3) {
+            //three commands
+            const mediaType = commands[0];
+            const effect = commands[1];
+            const command = commands[2];
 
-              tokens.push(obj);
+            if (values.length === 1) {
+              tokens.push({
+                command,
+                value: values[0],
+                effect,
+                mediaType,
+                rawClass: sh,
+              });
             }
           }
-        } else {
-          //ONELINERS ARE STILL AN ISSUE
-          const line = shArr[0]
-          const oneLinerArray = this.#tLexer(tUtils.one(line))
-          oneLinerArray.flatMap(obj => tokens.push(obj))
         }
       });
 
-      return tokens
+      //console.log(tokens)
+      return tokens;
     }
-
-    return tokens;
   }
 
-  /**@method tAST terseCSS AST */
-  #tAST(tks: Token[]) {
+  /**@method #ast terseCSS AST */
+  #ast(tks: Token[]) {
     const ast: ASTType[] = [];
 
-    tks.forEach((tk) => {
-      //console.log(tk)
+    tks.flatMap((tk) => {
+      if (tk.mediaType === undefined && tk.effect === undefined) {
+        //Global ENV
+        const command = tUtils.com(tk.command);
+        const res = `${command}:${tk.value};`;
 
-      if (tk?.media !== undefined) {
-        if (tk.option) {
-          const command = tUtils.com(tk.command);
-          const value = tk.value;
-          const media = tUtils.media(tk.media);
-          const text = `${command}:${value};`;
+        const astToken: ASTType = {
+          res,
+          rawClass: tk.rawClass,
+          env: "global",
+        };
 
-          const obj: ASTType = {
-            command,
-            value,
-            option: tk.option,
-            media,
-            res: text.trim(),
-            raw: tk.raw
-          };
+        ast.push(astToken);
+      } else if (tk.mediaType === undefined && tk.effect !== undefined) {
+        //Global ENV effects
+        const command = tUtils.com(tk.command);
+        const res = `&:${tk.effect}{${command}:${tk.value};}`;
 
-          ast.push(obj);
-        } else {
-          const command = tUtils.com(tk.command);
-          const value = tk.value;
-          const media = tUtils.media(tk.media, this.theme);
-          const text = `${command}:${value};`;
+        const astToken: ASTType = {
+          res,
+          rawClass: tk.rawClass,
+          effect: tk.effect,
+          env: "effect",
+        };
 
-          const obj: ASTType = {
-            command,
-            value,
-            media,
-            res: text.trim(),
-            mediaType: tk.media,
-            raw: tk.raw
-          };
+        ast.push(astToken);
+      } else if (tk.mediaType !== undefined && tk.effect !== undefined) {
+        //"responsive and effect"
 
-          ast.push(obj);
-        }
-      } else {
-        if (tk.option) {
-          const command = tUtils.com(tk.command);
-          const value = tk.value;
-          const text = `${command}:${value};`;
+        const command = tUtils.com(tk.command);
+        const media = tUtils.media(tk.mediaType, defaultTheme);
+        const res = `&:${tk.effect}{${command}:${tk.value};}`;
 
-          const obj: ASTType = {
-            command,
-            value,
-            option: tk.option,
-            res: text.trim(),
-            raw: tk.raw
-          };
+        const astToken: ASTType = {
+          res,
+          rawClass: tk.rawClass,
+          media,
+          mediaType: tk.mediaType,
+          effect: tk.effect,
+          env: "mediaEffect",
+        };
 
-          ast.push(obj);
-        } else {
-          //console.log(tk)
+        ast.push(astToken);
+      } else if (tk.mediaType !== undefined && tk.effect === undefined) {
+        //"all responsive"
+        const command = tUtils.com(tk.command);
+        const media = tUtils.media(tk.mediaType, defaultTheme);
+        const res = `${command}:${tk.value};`;
 
-          const command = tUtils.com(tk.command);
-          const value = tk.value;
-          const text = `${command}:${value};`;
+        const astToken: ASTType = {
+          res,
+          rawClass: tk.rawClass,
+          media,
+          mediaType: tk.mediaType,
+          env: "media",
+        };
 
-          const obj: ASTType = {
-            command,
-            value,
-            res: text.trim(),
-            raw: tk.raw
-          };
-
-          ast.push(obj);
-        }
+        ast.push(astToken);
       }
     });
 
     return ast;
   }
 
-  /**@method runtime terseCSS runtime */
-  #runtime(tks: Token[]) {
-    const ast: ASTType[] = this.#tAST(tks)
-
+  /**@method #runtime terseCSS runtime */
+  #runtime(node: Node) {
     let rules = "";
     let mediaRules = "";
-    const className = tUtils.classname();
 
-    ast.flatMap((tk: ASTType) => {
-      if (tk.media !== undefined) {
-        //console.log(tk.mediaType)
-        if (tk.mediaType === "sm") {
-          mediaRules += `${tk.media}{.${className}{${tk.res}}}`;
-        }
-        else if (tk.mediaType === "md") {
-          mediaRules += `${tk.media}{.${className}{${tk.res}}}`;
-        }
-        else if (tk.mediaType === "lg") {
-          mediaRules += `${tk.media}{.${className}{${tk.res}}}`;
-        }
-        else if (tk.mediaType === "hover" || tk.mediaType === "focus") {
-          rules += `&:${tk.mediaType}{${tk.res}}`;
-        }
-      } else {
-        rules += tk.res;
+    const tokens = this.#lexer(node?.classes);
+    const ast: ASTType[] = this.#ast(tokens);
+    const className = tUtils.classname(node);
+
+    ast.flatMap((tk) => {
+      if (tk.env === "global") {
+        //global rules
+        rules += `${tk.res}`;
+      } else if (tk.env === "effect") {
+        //global-effect rules
+        rules += `${tk.res}`;
+      } else if (tk.env === "media") {
+        //media rules
+        mediaRules += `${tk.media}{.${className}{${tk.res}}}`;
+      } else if (tk.env === "mediaEffect") {
+        //media-effect rules
+        mediaRules += `${tk.media}{.${className}{${tk.res}}}`;
       }
     });
 
-    const rule = `.${className}{${rules}}`;
-    this.style.push(rule);
+    const rule = rules !== "" ? `.${className}{${rules}}` : undefined;
+    if (rule !== undefined) this.style.push(rule);
 
     const mediaRulesArray = mediaRules
       .split("@media")
@@ -223,13 +241,12 @@ class TerseCSS {
       this.sheet?.insertRule(rule, id);
     });
 
-    this.classlist.push(className)
-    return className
+    this.classlist.push(className);
+    return className;
   }
 
-
   #getNodeList() {
-    const allElements = document.querySelectorAll('*');
+    const allElements = document.querySelectorAll("*");
     const classLists: Node[] = [];
 
     allElements.forEach((element, id) => {
@@ -238,30 +255,32 @@ class TerseCSS {
           tag: element.tagName?.toLocaleLowerCase(),
           classes: Array.from(element.classList).join(" "),
           element,
-          id
+          id,
         });
       }
     });
 
-    return classLists
+    return classLists;
   }
 
   //entry point
-  /**@method init TerseCSS Entry Point */
+  /**@method init TerseCSS Starting Point. */
   init(theme?: TerseTheme) {
-    this.theme = tUtils.th(theme as TerseTheme)
+    this.theme = tUtils.th(theme as TerseTheme);
 
-    this.nodelist = this.#getNodeList()
+    this.nodelist = this.#getNodeList();
 
-    this.nodelist.flatMap((node, id) => {
-      const tks = this.#tLexer(node?.classes)
-      const name = this.#runtime(tks)
-      node.element.classList.add(name)
-    })
+    this.nodelist.flatMap((node) => {
+      const classes = this.#runtime(node);
+      node.element.classList.add(classes);
+    });
   }
 }
+
+/**@function createTheme TerseCSS custom theme creator */
+export const createTheme = (customTheme: TerseTheme) => tUtils.th(customTheme);
 
 //main
 /**@instance of TerseCSS */
 export const terseCSS = new TerseCSS();
-export default TerseCSS
+export default TerseCSS;
