@@ -287,6 +287,10 @@ const shOneLiner = (command: string) => {
       return "w-100% h-100dvh d-flex";
     case "flex":
       return "d-flex align-center justify-start";
+    case "btn":
+      return "w-200px h-50px outline:none bdr-8px center font-14pt bd-none cur-pointer";
+    case "primarybtn":
+      return "btn bg-red";
     default:
       return "";
   }
