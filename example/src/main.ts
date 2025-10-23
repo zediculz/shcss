@@ -11,5 +11,3 @@ const myThemes = createTheme({
 })
 
 terseCSS.init(myThemes)
-
-console.log(terseCSS)

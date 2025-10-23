@@ -65,7 +65,7 @@ class TerseCSS {
               //one command, two values
               const valueOpt = isNaN(parseInt(values[1]))
                 ? values.join("-")
-                : values[1];
+                : values[0];
               tokens.push({
                 command: commands[0],
                 value: valueOpt,
@@ -76,10 +76,7 @@ class TerseCSS {
           } else if (commands.length === 2) {
             const cOption = commands[0];
             //two commands
-            if (
-              cOption === "sm" || cOption === "md" || cOption === "lg" ||
-              cOption === "dark"
-            ) {
+            if (cOption === "sm" || cOption === "md" || cOption === "lg" || cOption === "dark") {
               //responsive option
               if (values.length === 1) {
                 //two command-Responsive option and one value
@@ -93,6 +90,7 @@ class TerseCSS {
                 tokens.push(token);
               } else if (values.length === 2) {
                 //two commands, two values
+                //console.log("here", values, commands)
               }
             } else if (cOption === "hover") {
               //effect option
@@ -106,6 +104,12 @@ class TerseCSS {
                 });
               } else {
                 //multiple value for effect option
+                tokens.push({
+                  command: commands[1],
+                  value: values[0],
+                  effect: commands[0],
+                  rawClass: sh,
+              });
               }
             }
           } else if (commands.length === 3) {
