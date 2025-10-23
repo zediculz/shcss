@@ -1,3 +1,4 @@
+import type { TerseTheme } from "./index"
 
 export interface Token {
   command: string;
@@ -21,50 +22,6 @@ export interface ASTType {
 }
 
 export interface Node { tag: string, classes: string, element: Element, id: number }
-
-export interface TerseTheme {
-  title?: string,
-  color?: {
-    primary?: string,
-    secondary?: string
-  }
-
-  breakpoints?: {
-    sm?: string,
-    md?: string
-    lg?: string
-  },
-  root?: string
-}
-
-const alpha = [
-  "a",
-  "b",
-  "c",
-  "d",
-  "e",
-  "f",
-  "g",
-  "h",
-  "i",
-  "j",
-  "k",
-  "l",
-  "m",
-  "n",
-  "o",
-  "p",
-  "q",
-  "r",
-  "s",
-  "t",
-  "u",
-  "v",
-  "w",
-  "x",
-  "y",
-  "z"
-];
 
 
 /**@function tCommands all TerseCSS css shorthand commands and its utility function */
@@ -213,9 +170,9 @@ const tCommands = (command: string) => {
     case "op":
       return "opacity";
     case "boxs":
-      return "bos-shadow";
+      return "box-shadow";
     case "bs":
-      return "bos-shadow";
+      return "box-shadow";
     case "filter":
       return "filter";
     case "rt":
@@ -265,8 +222,38 @@ const tMedia = (media: string, theme?: TerseTheme) => {
   }
 };
 
+
 /**@function tClassName TerseCSS classname generator function */
 const tClassName = (node: Node) => {
+  const alpha = [
+  "a",
+  "b",
+  "c",
+  "d",
+  "e",
+  "f",
+  "g",
+  "h",
+  "i",
+  "j",
+  "k",
+  "l",
+  "m",
+  "n",
+  "o",
+  "p",
+  "q",
+  "r",
+  "s",
+  "t",
+  "u",
+  "v",
+  "w",
+  "x",
+  "y",
+  "z"
+  ];
+  
   const tag = node.tag
   const r1 = alpha[Math.floor(Math.random() * 25)];
   const r2 = alpha[Math.floor(Math.random() * 25)];
@@ -326,23 +313,11 @@ export function resTheme(theme: TerseTheme) {
   return newTheme
 }
 
-function resolveEnv(tk:ASTType) {
-  const env = {
-    global: tk?.env === "global",
-    effect: tk?.env === "effect",
-    media: tk.env === "media",
-    mediaEffect: tk?.env === "mediaEffect",
-  }
-
-  return env
-}
-
 /**@method tUtils TerseCSS utility functions */
 export const tUtils = {
   com: tCommands,
   media: tMedia,
   classname: tClassName,
   one: shOneLiner,
-  th: resTheme,
-  env: resolveEnv
+  th: resTheme
 };

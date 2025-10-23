@@ -1,7 +1,21 @@
 ///<reference lib="dom" />
-
 import { defaultTheme, tUtils } from "./utils";
-import type { ASTType, Node, TerseTheme, Token } from "./utils";
+import type { Token, Node, ASTType } from "./utils";
+
+export interface TerseTheme {
+  title?: string,
+  color?: {
+    primary?: string,
+    secondary?: string
+  }
+
+  breakpoints?: {
+    sm?: string,
+    md?: string
+    lg?: string
+  },
+  root?: string
+}
 
 /**@class TerseCSS */
 class TerseCSS {
@@ -211,6 +225,7 @@ class TerseCSS {
 
     const tokens = this.#lexer(node?.classes);
     const ast: ASTType[] = this.#ast(tokens);
+    console.log(ast)
     const className = tUtils.classname(node);
 
     ast.flatMap((tk) => {
@@ -268,10 +283,12 @@ class TerseCSS {
   }
 
   //entry point
-  /**@method init TerseCSS Starting Point. */
+  /**@method init TerseCSS Entry Point. @param theme provide a custom Tersetheme or use the default  @description make sure to call this function. */
   init(theme?: TerseTheme) {
+    //theme
     this.theme = tUtils.th(theme as TerseTheme);
 
+    //nodelist
     this.nodelist = this.#getNodeList();
 
     this.nodelist.flatMap((node) => {
