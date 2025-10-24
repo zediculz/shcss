@@ -225,7 +225,7 @@ class TerseCSS {
 
     const tokens = this.#lexer(node?.classes);
     const ast: ASTType[] = this.#ast(tokens);
-    console.log(ast)
+    
     const className = tUtils.classname(node);
 
     ast.flatMap((tk) => {
